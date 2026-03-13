@@ -21,14 +21,17 @@ package net.william278.husktowns.command;
 
 import net.william278.husktowns.BukkitHuskTowns;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.PluginManager;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class BukkitCommand extends org.bukkit.command.Command {
@@ -61,10 +64,31 @@ public class BukkitCommand extends org.bukkit.command.Command {
 
     public void register() {
         // Register with bukkit
-        plugin.getCommandRegistrar().getServerCommandMap().register("husktowns", this);
+        unregisterExistingMappings();
+        plugin.getCommandRegistrar().getServerCommandMap().register(plugin.getName().toLowerCase(Locale.ROOT), this);
 
         // Register permissions
         this.registerPermissions(command, plugin);
+    }
+
+    private void unregisterExistingMappings() {
+        if (!(plugin.getCommandRegistrar().getServerCommandMap() instanceof SimpleCommandMap commandMap)) {
+            return;
+        }
+
+        final Map<String, org.bukkit.command.Command> knownCommands =
+            plugin.getCommandRegistrar().getCommandMapKnownCommands(commandMap);
+        final List<String> labels = new ArrayList<>();
+        labels.add(command.getName().toLowerCase(Locale.ROOT));
+        command.getAliases().forEach(alias -> labels.add(alias.toLowerCase(Locale.ROOT)));
+
+        final String pluginPrefix = plugin.getName().toLowerCase(Locale.ROOT) + ":";
+        final String fallbackPrefix = "husktowns:";
+        labels.forEach(label -> {
+            knownCommands.remove(label);
+            knownCommands.remove(pluginPrefix + label);
+            knownCommands.remove(fallbackPrefix + label);
+        });
     }
 
     private void registerPermissions(@NotNull Command command, @NotNull BukkitHuskTowns plugin) {

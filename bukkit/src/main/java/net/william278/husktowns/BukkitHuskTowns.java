@@ -336,6 +336,15 @@ public class BukkitHuskTowns extends JavaPlugin implements HuskTowns, BukkitTask
 
     public void registerCommands() {
         getCommands().forEach(command -> new BukkitCommand(command, this).register());
+        syncCommands();
+    }
+
+    private void syncCommands() {
+        try {
+            final var syncCommands = getServer().getClass().getMethod("syncCommands");
+            syncCommands.invoke(getServer());
+        } catch (ReflectiveOperationException ignored) {
+        }
     }
 
     @Override

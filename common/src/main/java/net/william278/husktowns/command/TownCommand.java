@@ -51,7 +51,7 @@ import java.util.stream.Collectors;
 
 public final class TownCommand extends Command {
     public TownCommand(@NotNull HuskTowns plugin) {
-        super("town", plugin.getSettings().getAliases(), plugin);
+        super("town", getRootAliases(plugin), plugin);
         setConsoleExecutable(true);
         setDefaultExecutor(new OverviewCommand(this, plugin, OverviewCommand.Type.TOWN));
         final ArrayList<ChildCommand> children = new ArrayList<>(List.of(getHelpCommand(),
@@ -99,6 +99,15 @@ public final class TownCommand extends Command {
             children.add(new MoneyCommand(this, plugin, false));
         }
         setChildren(children);
+    }
+
+    @NotNull
+    private static List<String> getRootAliases(@NotNull HuskTowns plugin) {
+        final LinkedHashSet<String> aliases = new LinkedHashSet<>();
+        aliases.add("t");
+        aliases.add("towns");
+        aliases.addAll(plugin.getSettings().getAliases());
+        return List.copyOf(aliases);
     }
 
     @Override
@@ -198,7 +207,14 @@ public final class TownCommand extends Command {
 
             final Town town = optionalTown.get();
             switch (type) {
-                case TOWN -> plugin.runAsync(() -> Overview.of(town, executor, plugin).show());
+                case TOWN -> plugin.runAsync(() -> {
+                    final Component overview = Overview.of(town, executor, plugin).toComponent();
+                    if (executor instanceof OnlineUser user) {
+                        plugin.runSync(() -> executor.sendMessage(overview), user);
+                    } else {
+                        plugin.runSync(() -> executor.sendMessage(overview));
+                    }
+                });
                 case DEEDS -> {
                     final int claimCount = town.getClaimCount();
                     if (claimCount <= 0) {
@@ -268,7 +284,12 @@ public final class TownCommand extends Command {
                                 )
                                 .map(l -> new MineDown(l).toComponent()).orElse(Component.empty()));
                     }
-                    executor.sendMessage(component);
+                    final Component census = component;
+                    if (executor instanceof OnlineUser user) {
+                        plugin.runSync(() -> executor.sendMessage(census), user);
+                    } else {
+                        plugin.runSync(() -> executor.sendMessage(census));
+                    }
                 });
             }
         }

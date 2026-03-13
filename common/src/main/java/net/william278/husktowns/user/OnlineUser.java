@@ -59,6 +59,9 @@ public abstract class OnlineUser extends User implements CommandUser, OperationU
     public abstract void sendPluginMessage(@NotNull String channel, byte[] message);
 
     public final void sendActionBar(@NotNull Component component) {
+        if (component == null) {
+            return;
+        }
         getAudience().sendActionBar(component);
     }
 
@@ -67,13 +70,19 @@ public abstract class OnlineUser extends User implements CommandUser, OperationU
     }
 
     public final void sendTitle(@NotNull Component title, @NotNull Component subtitle) {
+        if (title == null || subtitle == null) {
+            return;
+        }
         getAudience().showTitle(Title.title(title, subtitle));
     }
 
     public final void sendMessage(@NotNull Locales.Slot slot, @NotNull Component message) {
+        if (slot == null || message == null) {
+            return;
+        }
         switch (slot) {
             case CHAT -> this.sendMessage(message);
-            case ACTION_BAR -> this.sendActionBar(message);
+            case ACTION_BAR -> this.sendMessage(message);
             case TITLE -> this.sendTitle(message, Component.empty());
             case SUBTITLE -> this.sendTitle(Component.empty(), message);
         }

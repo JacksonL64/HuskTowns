@@ -22,6 +22,7 @@ package net.william278.husktowns.user;
 import de.themoep.minedown.adventure.MineDown;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.jetbrains.annotations.NotNull;
 
 public interface CommandUser {
@@ -32,11 +33,38 @@ public interface CommandUser {
     boolean hasPermission(@NotNull String permission);
 
     default void sendMessage(@NotNull Component component) {
+        if (component == null) {
+            return;
+        }
+        if (trySendDirectly(component)) {
+            return;
+        }
         getAudience().sendMessage(component);
     }
 
     default void sendMessage(@NotNull MineDown mineDown) {
         this.sendMessage(mineDown.toComponent());
+    }
+
+    private boolean trySendDirectly(@NotNull Component component) {
+        try {
+            final java.lang.reflect.Method getPlayer = this.getClass().getMethod("getPlayer");
+            final Object player = getPlayer.invoke(this);
+            if (player != null) {
+                try {
+                    final java.lang.reflect.Method richSendMessage = player.getClass().getMethod("sendMessage", Component.class);
+                    richSendMessage.invoke(player, component);
+                    return true;
+                } catch (ReflectiveOperationException ignored) {
+                }
+
+                final java.lang.reflect.Method sendMessage = player.getClass().getMethod("sendMessage", String.class);
+                sendMessage.invoke(player, PlainTextComponentSerializer.plainText().serialize(component));
+                return true;
+            }
+        } catch (ReflectiveOperationException ignored) {
+        }
+        return false;
     }
 
 }
