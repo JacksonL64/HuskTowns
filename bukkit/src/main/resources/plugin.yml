@@ -4,7 +4,10 @@ author: 'William278'
 website: 'https://william278.net/project/husktowns'
 main: 'net.william278.husktowns.BukkitHuskTowns'
 version: '${version}'
-api-version: 1.16
+api-version: 1.21
+
+taco-hot-reload: true
+
 libraries:
   - 'redis.clients:jedis:${jedis_version}'
   - 'com.mysql:mysql-connector-j:${mysql_driver_version}'

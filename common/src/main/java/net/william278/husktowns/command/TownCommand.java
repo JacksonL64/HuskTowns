@@ -116,11 +116,33 @@ public final class TownCommand extends Command {
      */
     private static class CreateCommand extends ChildCommand {
         public CreateCommand(@NotNull Command parent, @NotNull HuskTowns plugin) {
-            super("create", List.of("found"), parent, "<name>", plugin);
+            super("create", List.of("found"), parent, "[name]", plugin);
         }
 
         @Override
         public void execute(@NotNull CommandUser executor, @NotNull String[] args) {
+            // Check if this is a Bukkit player and no name was provided - open GUI
+            if (executor instanceof OnlineUser user && args.length == 0) {
+                // Try to open GUI if on Bukkit platform
+                try {
+                    Class<?> bukkitUserClass = Class.forName("net.william278.husktowns.user.BukkitUser");
+                    if (bukkitUserClass.isInstance(user)) {
+                        Class<?> bukkitHuskTownsClass = Class.forName("net.william278.husktowns.BukkitHuskTowns");
+                        if (bukkitHuskTownsClass.isInstance(plugin)) {
+                            Object bukkitPlugin = bukkitHuskTownsClass.cast(plugin);
+                            Object gui = bukkitHuskTownsClass.getMethod("getTownCreationGUI").invoke(bukkitPlugin);
+                            Object player = bukkitUserClass.getMethod("getPlayer").invoke(user);
+                            gui.getClass().getMethod("openInitialGUI", Class.forName("org.bukkit.entity.Player"))
+                                    .invoke(gui, player);
+                            return;
+                        }
+                    }
+                } catch (Exception ignored) {
+                    // Not on Bukkit or GUI not available, fall through to traditional command
+                }
+            }
+
+            // Traditional command behavior - require name argument
             final Optional<String> name = parseGreedyString(args, 0);
             if (name.isEmpty()) {
                 plugin.getLocales().getLocale("error_invalid_syntax", getUsage())

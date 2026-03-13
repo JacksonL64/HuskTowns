@@ -47,9 +47,14 @@ import net.william278.husktowns.hook.map.BlueMapHook;
 import net.william278.husktowns.hook.map.DynmapHook;
 import net.william278.husktowns.hook.map.Pl3xMapHook;
 import net.william278.husktowns.listener.BukkitListener;
+import net.william278.husktowns.listener.TownCreationListener;
 import net.william278.husktowns.manager.Manager;
+import net.william278.husktowns.menu.TownCreationGUI;
 import net.william278.husktowns.network.Broker;
 import net.william278.husktowns.network.PluginMessageBroker;
+import net.william278.husktowns.schematic.SchematicLoader;
+import net.william278.husktowns.schematic.SchematicPlacer;
+import net.william278.husktowns.schematic.SchematicVisualizer;
 import net.william278.husktowns.town.Invite;
 import net.william278.husktowns.town.Town;
 import net.william278.husktowns.user.BukkitUser;
@@ -143,6 +148,12 @@ public class BukkitHuskTowns extends JavaPlugin implements HuskTowns, BukkitTask
     @Setter
     private HookManager hookManager;
 
+    // Town Creation GUI and Schematic Systems
+    private TownCreationGUI townCreationGUI;
+    private SchematicLoader schematicLoader;
+    private SchematicPlacer schematicPlacer;
+    private SchematicVisualizer schematicVisualizer;
+
     @TestOnly
     @SuppressWarnings("unused")
     private BukkitHuskTowns(@NotNull JavaPluginLoader loader, @NotNull PluginDescriptionFile description,
@@ -226,6 +237,18 @@ public class BukkitHuskTowns extends JavaPlugin implements HuskTowns, BukkitTask
         final BukkitListener listener = new BukkitListener(this);
         this.operationListener = listener;
         listener.register();
+
+        // Initialize town creation GUI and schematic systems
+        this.townCreationGUI = new TownCreationGUI(this);
+        this.schematicLoader = new SchematicLoader(this);
+        this.schematicPlacer = new SchematicPlacer(this);
+        this.schematicVisualizer = new SchematicVisualizer(this);
+
+        // Register town creation listener
+        final TownCreationListener creationListener = new TownCreationListener(
+                this, townCreationGUI, schematicLoader, schematicPlacer, schematicVisualizer
+        );
+        Bukkit.getPluginManager().registerEvents(creationListener, this);
 
         // Register API
         BukkitHuskTownsAPI.register(this);
@@ -446,6 +469,26 @@ public class BukkitHuskTowns extends JavaPlugin implements HuskTowns, BukkitTask
     @Override
     public Optional<Advancement> getAdvancements() {
         return Optional.ofNullable(advancements);
+    }
+
+    @NotNull
+    public TownCreationGUI getTownCreationGUI() {
+        return townCreationGUI;
+    }
+
+    @NotNull
+    public SchematicLoader getSchematicLoader() {
+        return schematicLoader;
+    }
+
+    @NotNull
+    public SchematicPlacer getSchematicPlacer() {
+        return schematicPlacer;
+    }
+
+    @NotNull
+    public SchematicVisualizer getSchematicVisualizer() {
+        return schematicVisualizer;
     }
 
     @Override

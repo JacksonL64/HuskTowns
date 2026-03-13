@@ -5,7 +5,8 @@ website: 'https://william278.net/'
 main: 'net.william278.husktowns.PaperHuskTowns'
 loader: 'net.william278.husktowns.PaperHuskTownsLoader'
 version: '${version}'
-api-version: '1.19'
+api-version: '1.21'
+taco-hot-reload: true
 folia-supported: true
 dependencies:
   server:
