@@ -73,14 +73,20 @@ public class BukkitCommand extends org.bukkit.command.Command {
         command.getChildren()
             .stream().map(child -> new Permission(child.getPermission(), child.getUsage(),
                 child.isOperatorCommand() ? PermissionDefault.OP : PermissionDefault.TRUE))
-            .forEach(manager::addPermission);
-        manager.addPermission(new Permission(command.getPermission(), "/" + command.getName(),
+            .forEach(permission -> addPermissionIfMissing(manager, permission));
+        addPermissionIfMissing(manager, new Permission(command.getPermission(), "/" + command.getName(),
             command.isOperatorCommand() ? PermissionDefault.OP : PermissionDefault.TRUE));
 
         // Register primary permission
         final Map<String, Boolean> childNodes = new HashMap<>();
         command.getChildren().forEach(child -> childNodes.put(child.getPermission(), true));
-        manager.addPermission(new Permission(command.getPermission() + ".*", command.getUsage(),
+        addPermissionIfMissing(manager, new Permission(command.getPermission() + ".*", command.getUsage(),
             PermissionDefault.FALSE, childNodes));
+    }
+
+    private void addPermissionIfMissing(@NotNull PluginManager manager, @NotNull Permission permission) {
+        if (manager.getPermission(permission.getName()) == null) {
+            manager.addPermission(permission);
+        }
     }
 }

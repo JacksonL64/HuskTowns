@@ -98,8 +98,11 @@ allprojects {
 
     processResources {
         filesMatching(['**/*.json', '**/*.yml']) {
+            def stringTokens = rootProject.ext.properties.collectEntries { key, value ->
+                [(key.toString()): value.toString()]
+            }
             filter ReplaceTokens as Class, beginToken: '${', endToken: '}',
-                    tokens: rootProject.ext.properties
+                    tokens: stringTokens
         }
     }
 }
